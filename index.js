@@ -34,6 +34,7 @@ async function run() {
 
     const usersCollection = client.db("tripTailorBD").collection("users");
     const packageCollection = client.db("tripTailorBD").collection("packages");
+    const storyCollection = client.db("tripTailorBD").collection("stories");
 
     //jwt related api
     app.post('/jwt', async (req, res) => {
@@ -42,7 +43,7 @@ async function run() {
       res.send({ token });
     })
 
-    
+
 
 
     //save a user in the db 
@@ -61,7 +62,6 @@ async function run() {
           return res.send(isExist);
         }
       }
-
       //save the user for the first time
       const options = { upsert: true };
       const updateDoc = { $set: { ...user } }
@@ -70,17 +70,7 @@ async function run() {
       res.send(result);
     })
 
-
-
-    //get all tour types of all the packages
-    // app.get("/tour-typess", async (req, res) => {
-    //   const result = await packageCollection.find().toArray();
-
-    //   res.send(result);
-    // })
-
-    // Assuming you have a working connection to MongoDB and a packageCollection
-
+    //get only the tour types
     app.get("/tour-types", async (req, res) => {
       const pipeline = [
         { $unwind: "$tourType" },
@@ -94,6 +84,14 @@ async function run() {
       res.send(uniqueTourTypes);
     });
 
+
+    //add stories in the db
+    app.post('/story', async (req, res) => {
+      const storyInfo = req.body;
+
+      const result = await storyCollection.insertOne(storyInfo);
+      res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
