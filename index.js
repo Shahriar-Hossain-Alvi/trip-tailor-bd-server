@@ -33,14 +33,16 @@ async function run() {
     await client.connect();
 
     const usersCollection = client.db("tripTailorBD").collection("users");
+    const packageCollection = client.db("tripTailorBD").collection("packages");
 
     //jwt related api
-    // app.post('/jwt', async (req, res) => {
-    //   const user = req.body;
-    //   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '12h' });
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '12h' });
+      res.send({ token });
+    })
 
-    //   res.send({ token });
-    // })
+    
 
 
     //save a user in the db 
@@ -67,6 +69,31 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc, options);
       res.send(result);
     })
+
+
+
+    //get all tour types of all the packages
+    // app.get("/tour-typess", async (req, res) => {
+    //   const result = await packageCollection.find().toArray();
+
+    //   res.send(result);
+    // })
+
+    // Assuming you have a working connection to MongoDB and a packageCollection
+
+    app.get("/tour-types", async (req, res) => {
+      const pipeline = [
+        { $unwind: "$tourType" },
+        { $group: { _id: "$tourType", } },
+        { $project: { tourType: "$_id" } }
+      ];
+      const result = await packageCollection.aggregate(pipeline).toArray();
+      // Extract unique tour types from the results
+      const uniqueTourTypes = [...new Set(result.map(item => item.tourType))];
+
+      res.send(uniqueTourTypes);
+    });
+
 
 
     // Send a ping to confirm a successful connection
