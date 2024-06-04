@@ -35,6 +35,7 @@ async function run() {
     const usersCollection = client.db("tripTailorBD").collection("users");
     const packageCollection = client.db("tripTailorBD").collection("packages");
     const storyCollection = client.db("tripTailorBD").collection("stories");
+    const wishlistCollection = client.db("tripTailorBD").collection("wishList");
 
     //jwt related api
     app.post('/jwt', async (req, res) => {
@@ -122,7 +123,18 @@ async function run() {
 
     //get 3 highest price packages
     app.get('/highestPricePackages', async (req, res) => {
-      const result = await packageCollection.find().sort({price: -1}).limit(3).toArray();
+      const result = await packageCollection.find().sort({ price: -1 }).limit(3).toArray();
+      res.send(result);
+    })
+
+
+    //get a specific package
+    app.get('/package/:id', async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) }
+
+      const result = await packageCollection.find(query).toArray();
       res.send(result);
     })
 
@@ -158,6 +170,14 @@ async function run() {
 
       const result = await storyCollection.findOne(query);
       res.send(result)
+    })
+
+
+    // ============== wishlist related api =========
+    app.post('/wishlist', async (req, res) => {
+      const wishlist = req.body;
+      const result = await wishlistCollection.insertOne(wishlist);
+      res.send(result);
     })
 
 
