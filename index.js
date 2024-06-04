@@ -43,8 +43,24 @@ async function run() {
       res.send({ token });
     })
 
+    const verifyToken = (req, res, next) => {
+      console.log('inside verify token', req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: 'unauthorized access' });
+      }
+      const token = req.headers.authorization.split(' ')[1];
 
-        // ============ user related api ===========
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: 'unauthorized access' })
+        }
+        req.decoded = decoded;
+        next();
+      });
+    }
+
+
+    // ============ user related api ===========
 
     //save a user in the db 
     app.put('/users', async (req, res) => {
@@ -70,7 +86,8 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/user/:email', async(req, res)=>{
+    //get single user
+    app.get('/user/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = {
         email: email
@@ -96,6 +113,18 @@ async function run() {
       res.send(uniqueTourTypes);
     });
 
+    //get all the packages
+    app.get('/packages', async (req, res) => {
+      const result = await packageCollection.find().toArray();
+      res.send(result);
+    });
+
+
+    //get 3 highest price packages
+    app.get('/highestPricePackages', async (req, res) => {
+      const result = await packageCollection.find().sort({price: -1}).limit(3).toArray();
+      res.send(result);
+    })
 
 
     //  =========== story related api ===========
