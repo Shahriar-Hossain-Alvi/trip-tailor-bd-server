@@ -44,7 +44,7 @@ async function run() {
     })
 
 
-
+        // ============ user related api ===========
 
     //save a user in the db 
     app.put('/users', async (req, res) => {
@@ -70,6 +70,18 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/user/:email', async(req, res)=>{
+      const email = req.params.email;
+      const query = {
+        email: email
+      }
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    })
+
+
+    //  ========= packages related api =========
+
     //get only the tour types
     app.get("/tour-types", async (req, res) => {
       const pipeline = [
@@ -85,6 +97,9 @@ async function run() {
     });
 
 
+
+    //  =========== story related api ===========
+
     //add stories in the db
     app.post('/story', async (req, res) => {
       const storyInfo = req.body;
@@ -96,6 +111,12 @@ async function run() {
     //get all the stories
     app.get('/stories', async (req, res) => {
       const result = await storyCollection.find().toArray();
+      res.send(result);
+    })
+
+    //get 4 stories
+    app.get('/limitedStories', async (req, res) => {
+      const result = await storyCollection.find().limit(4).toArray();
       res.send(result);
     })
 
