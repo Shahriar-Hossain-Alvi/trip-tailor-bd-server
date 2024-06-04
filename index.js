@@ -45,7 +45,7 @@ async function run() {
     })
 
     const verifyToken = (req, res, next) => {
-      console.log('inside verify token', req.headers.authorization);
+      // console.log('inside verify token', req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: 'unauthorized access' });
       }
@@ -176,6 +176,16 @@ async function run() {
     // ============== wishlist related api =========
     app.post('/wishlist', async (req, res) => {
       const wishlist = req.body;
+      const query = {
+        email: wishlist.email,
+        tripTitle: wishlist.tripTitle
+      }
+
+      const isExist = await wishlistCollection.findOne(query);
+      if (isExist) {
+        return res.send({ message: 'Already in your wishlist' })
+      }
+
       const result = await wishlistCollection.insertOne(wishlist);
       res.send(result);
     })
