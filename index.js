@@ -2,7 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 const app = express();
@@ -91,6 +91,23 @@ async function run() {
 
       const result = await storyCollection.insertOne(storyInfo);
       res.send(result);
+    })
+
+    //get all the stories
+    app.get('/stories', async (req, res) => {
+      const result = await storyCollection.find().toArray();
+      res.send(result);
+    })
+
+    //get single story data
+    app.get('/story/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: new ObjectId(id)
+      }
+
+      const result = await storyCollection.findOne(query);
+      res.send(result)
     })
 
 
