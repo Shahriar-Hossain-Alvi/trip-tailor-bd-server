@@ -36,6 +36,7 @@ async function run() {
     const packageCollection = client.db("tripTailorBD").collection("packages");
     const storyCollection = client.db("tripTailorBD").collection("stories");
     const wishlistCollection = client.db("tripTailorBD").collection("wishList");
+    const bookingCollection = client.db("tripTailorBD").collection("bookings");
 
     //jwt related api
     app.post('/jwt', async (req, res) => {
@@ -97,6 +98,18 @@ async function run() {
       res.send(result);
     })
 
+    //get tour guides data from user collection
+    app.get('/tourGuides', async (req, res) => {
+      const query = {
+        role: 'tourGuide'
+      }
+
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    })
+
+
+
 
     //  ========= packages related api =========
 
@@ -134,15 +147,18 @@ async function run() {
 
       const query = { _id: new ObjectId(id) }
 
-      const result = await packageCollection.find(query).toArray();
+      const result = await packageCollection.findOne(query);
       res.send(result);
     })
+
+
+
 
 
     //  =========== story related api ===========
 
     //add stories in the db
-    app.post('/story', async (req, res) => {
+    app.post('/story', verifyToken,async (req, res) => {
       const storyInfo = req.body;
 
       const result = await storyCollection.insertOne(storyInfo);
@@ -171,6 +187,16 @@ async function run() {
       const result = await storyCollection.findOne(query);
       res.send(result)
     })
+
+
+
+    // ============= booking related api ==========
+    app.post('/booking', verifyToken, async (req, res) => {
+      const bookingInfo = req.body;
+      const result = await bookingCollection.insertOne(bookingInfo);
+      res.send(result);
+    })
+
 
 
     // ============== wishlist related api =========
