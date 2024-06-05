@@ -46,7 +46,7 @@ async function run() {
     })
 
     const verifyToken = (req, res, next) => {
-      // console.log('inside verify token', req.headers.authorization);
+      console.log('inside verify token', req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: 'unauthorized access' });
       }
@@ -198,6 +198,21 @@ async function run() {
     })
 
 
+    app.get('/booking',verifyToken, async (req, res) => {
+      const result = await bookingCollection.find().toArray();
+      res.send(result);
+    })
+
+
+    app.get('/booking/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+
+      const query = {email: email}
+
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    })
 
     // ============== wishlist related api =========
     app.post('/wishlist', async (req, res) => {
