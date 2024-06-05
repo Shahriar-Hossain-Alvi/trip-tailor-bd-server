@@ -46,7 +46,7 @@ async function run() {
     })
 
     const verifyToken = (req, res, next) => {
-      console.log('inside verify token', req.headers.authorization);
+      // console.log('inside verify token', req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: 'unauthorized access' });
       }
@@ -158,7 +158,7 @@ async function run() {
     //  =========== story related api ===========
 
     //add stories in the db
-    app.post('/story', verifyToken,async (req, res) => {
+    app.post('/story', verifyToken, async (req, res) => {
       const storyInfo = req.body;
 
       const result = await storyCollection.insertOne(storyInfo);
@@ -198,7 +198,7 @@ async function run() {
     })
 
 
-    app.get('/booking',verifyToken, async (req, res) => {
+    app.get('/booking', verifyToken, async (req, res) => {
       const result = await bookingCollection.find().toArray();
       res.send(result);
     })
@@ -206,11 +206,16 @@ async function run() {
 
     app.get('/booking/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
-      console.log(email);
-
-      const query = {email: email}
-
+      const query = { email: email }
       const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    })
+
+
+    app.delete('/booking/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await bookingCollection.deleteOne(query);
       res.send(result);
     })
 
