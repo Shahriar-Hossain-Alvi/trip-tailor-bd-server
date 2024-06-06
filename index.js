@@ -10,7 +10,11 @@ const port = process.env.PORT || 5000;
 
 
 //middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+  ]
+}));
 app.use(express.json());
 
 
@@ -73,7 +77,15 @@ async function run() {
       const isExist = await usersCollection.findOne(query);
       if (isExist) {
         if (user?.status === "requested") {
-          const result = await usersCollection.updateOne(query, { $set: { status: user?.status } })
+          const result = await usersCollection.updateOne(query, {
+            $set: {
+              phoneNumber: user?.phoneNumber,
+              education: user?.education,
+              skills: user?.skills,
+              experience: user?.experience,
+              status: user?.status
+            }
+          })
           return res.send(result);
         }
         else {
@@ -98,20 +110,25 @@ async function run() {
       res.send(result);
     })
 
-    //get tour guides data from user collection
-    app.get('/tourGuides', async (req, res) => {
-      const query = {
-        role: 'tourGuide'
-      }
-
-      const result = await usersCollection.find(query).toArray();
+    //get all the users
+    app.get('/users', verifyToken, async (req, res) => {
+      const result = await usersCollection.find().toArray();
       res.send(result);
     })
 
 
 
+    // ========== tour guide related api ========= 
 
-    //  ========= packages related api =========
+    //get tour guides data from user collection
+    app.get('/tourGuides', async (req, res) => {
+      const query = {
+        role: 'tour guide'
+      }
+
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    })
 
     //get only the tour types
     app.get("/tour-types", async (req, res) => {
@@ -126,6 +143,23 @@ async function run() {
 
       res.send(uniqueTourTypes);
     });
+
+    //make someone tour guide
+    app.patch('/users/tourGuide/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'tour guide',
+          status: 'accepted'
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+
+    //  ========= packages related api =========
 
     //get all the packages
     app.get('/packages', async (req, res) => {
@@ -148,6 +182,13 @@ async function run() {
       const query = { _id: new ObjectId(id) }
 
       const result = await packageCollection.findOne(query);
+      res.send(result);
+    })
+
+    //post packages
+    app.post('/packages', verifyToken, async (req, res) => {
+      const packageInfo = req.body;
+      const result = await packageCollection.insertOne(packageInfo);
       res.send(result);
     })
 
@@ -236,10 +277,10 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/wishlist/:email',verifyToken, async (req, res) => {
+    app.get('/wishlist/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
-      const result = await wishlistCollection.find().toArray();
+      const result = await wishlistCollection.find(query).toArray();
       res.send(result);
     })
 
