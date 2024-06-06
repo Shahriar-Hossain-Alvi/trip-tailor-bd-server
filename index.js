@@ -236,6 +236,13 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/wishlist/:email',verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const result = await wishlistCollection.find().toArray();
+      res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
