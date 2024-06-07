@@ -78,12 +78,18 @@ async function run() {
       if (isExist) {
         if (user?.status === "requested") {
           const result = await usersCollection.updateOne(query, {
+            $set: { status: user?.status }
+          })
+          return res.send(result);
+        }
+        else if (user?.status === "accepted") {
+          const result = await usersCollection.updateOne(query, {
             $set: {
               phoneNumber: user?.phoneNumber,
               education: user?.education,
               skills: user?.skills,
               experience: user?.experience,
-              status: user?.status
+              profileUpdateStatus: 'updated'
             }
           })
           return res.send(result);
@@ -116,11 +122,24 @@ async function run() {
       res.send(result);
     })
 
+    //make someone admin
+    app.patch('/users/admin/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin',
+          status: 'accepted'
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
 
 
     // ========== tour guide related api ========= 
 
-    //get tour guides data from user collection
+    //get all tour guides data from user collection
     app.get('/tourGuides', async (req, res) => {
       const query = {
         role: 'tour guide'
@@ -155,6 +174,16 @@ async function run() {
         }
       }
       const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    //get single tour guide data
+    app.get('/tourGuide/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+
+      const query = {_id: new ObjectId(id)}
+
+      const result = await usersCollection.findOne(query);
       res.send(result);
     })
 
