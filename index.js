@@ -178,15 +178,21 @@ async function run() {
     })
 
     //get single tour guide data
-    app.get('/tourGuide/:id', verifyToken, async (req, res) => {
+    app.get('/tourGuide/:id', async (req, res) => {
       const id = req.params.id;
 
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
 
       const result = await usersCollection.findOne(query);
       res.send(result);
     })
 
+    app.get('/myTours/:name', async (req, res) => {
+      const name = req.params.name;
+      const query = { selectedTourGuide: name }
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result)
+    })
 
     //  ========= packages related api =========
 
@@ -320,6 +326,32 @@ async function run() {
       res.send(result);
     })
 
+    //accept booking
+    app.patch('/wishlist/accept/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: 'Accepted'
+        }
+      }
+      const result = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+
+    //reject booking
+    app.patch('/wishlist/reject/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: 'Rejected'
+        }
+      }
+      const result = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
