@@ -44,6 +44,7 @@ async function run() {
     const wishlistCollection = client.db("tripTailorBD").collection("wishList");
     const bookingCollection = client.db("tripTailorBD").collection("bookings");
     const commentCollection = client.db("tripTailorBD").collection("comments");
+    const newsletterCollection = client.db("tripTailorBD").collection("newsletters");
 
     //jwt related api
     app.post('/jwt', async (req, res) => {
@@ -388,9 +389,16 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/comments', async(req, res)=>{
+    app.get('/comments', async (req, res) => {
       const result = await commentCollection.find().toArray();
       res.send(result)
+    })
+
+    //newsletter subscriber
+    app.post('/newsletters', async (req, res) => {
+      const email = req.body;
+      const result = await newsletterCollection.insertOne({email, status: "subscribed"}); 
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
