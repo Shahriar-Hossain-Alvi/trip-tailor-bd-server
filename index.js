@@ -13,6 +13,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     "http://localhost:5173",
+    "https://trip-tailor-bd.web.app",
+    "https://trip-tailor-bd.firebaseapp.com"
   ]
 }));
 app.use(express.json());
@@ -34,7 +36,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const usersCollection = client.db("tripTailorBD").collection("users");
     const packageCollection = client.db("tripTailorBD").collection("packages");
@@ -116,9 +118,16 @@ async function run() {
       res.send(result);
     })
 
-    //get all the users
-    app.get('/users', verifyToken, async (req, res) => {
-      const result = await usersCollection.find().toArray();
+    //get all the users or searched user
+    app.get('/users', async (req, res) => {
+      const filter = req?.query;
+      console.log(filter);
+
+      const query = {
+        name: { $regex: filter?.search, $options: 'i' }
+      };
+
+      const result = await usersCollection.find(query).toArray();
       res.send(result);
     })
 
@@ -135,7 +144,7 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updatedDoc);
       res.send(result);
     })
-
+    
 
     // ========== tour guide related api ========= 
 
@@ -148,20 +157,6 @@ async function run() {
       const result = await usersCollection.find(query).toArray();
       res.send(result);
     })
-
-    //get only the tour types
-    app.get("/tour-types", async (req, res) => {
-      const pipeline = [
-        { $unwind: "$tourType" },
-        { $group: { _id: "$tourType", } },
-        { $project: { tourType: "$_id" } }
-      ];
-      const result = await packageCollection.aggregate(pipeline).toArray();
-      // Extract unique tour types from the results
-      const uniqueTourTypes = [...new Set(result.map(item => item.tourType))];
-
-      res.send(uniqueTourTypes);
-    });
 
     //make someone tour guide
     app.patch('/users/tourGuide/:id', verifyToken, async (req, res) => {
@@ -227,8 +222,29 @@ async function run() {
       res.send(result);
     })
 
+    //get only the tour types
+    app.get("/tour-types", async (req, res) => {
+      const pipeline = [
+        { $unwind: "$tourType" },
+        { $group: { _id: "$tourType", } },
+        { $project: { tourType: "$_id" } }
+      ];
+      const result = await packageCollection.aggregate(pipeline).toArray();
+      // Extract unique tour types from the results
+      const uniqueTourTypes = [...new Set(result.map(item => item.tourType))];
+
+      res.send(uniqueTourTypes);
+    });
 
 
+    //get packages by category
+    app.get("/tour-types/:category", async (req, res) => {
+      const category = req.params.category;
+      const query = { tourType: category }
+
+      const result = await packageCollection.find(query).toArray();
+      res.send(result);
+    });
 
 
     //  =========== story related api ===========
@@ -267,6 +283,7 @@ async function run() {
 
 
     // ============= booking related api ==========
+    // add a booking to the db
     app.post('/booking', verifyToken, async (req, res) => {
       const bookingInfo = req.body;
       const result = await bookingCollection.insertOne(bookingInfo);
@@ -274,12 +291,14 @@ async function run() {
     })
 
 
+    //get all the bookings
     app.get('/booking', verifyToken, async (req, res) => {
       const result = await bookingCollection.find().toArray();
       res.send(result);
     })
 
 
+    //get bookings for specific user
     app.get('/booking/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
@@ -288,6 +307,7 @@ async function run() {
     })
 
 
+    //cancel a booking
     app.delete('/booking/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
@@ -296,6 +316,8 @@ async function run() {
     })
 
     // ============== wishlist related api =========
+
+    //add packages to the wishlist
     app.post('/wishlist', async (req, res) => {
       const wishlist = req.body;
       const query = {
@@ -312,6 +334,8 @@ async function run() {
       res.send(result);
     })
 
+
+    //get specific users wishlist
     app.get('/wishlist/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
@@ -319,12 +343,15 @@ async function run() {
       res.send(result);
     })
 
+
+    //remove packages from wishlist
     app.delete('/wishlist/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await wishlistCollection.deleteOne(query);
       res.send(result);
     })
+
 
     //accept booking
     app.patch('/wishlist/accept/:id', verifyToken, async (req, res) => {
@@ -354,8 +381,8 @@ async function run() {
     })
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
