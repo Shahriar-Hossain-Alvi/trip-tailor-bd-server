@@ -43,6 +43,7 @@ async function run() {
     const storyCollection = client.db("tripTailorBD").collection("stories");
     const wishlistCollection = client.db("tripTailorBD").collection("wishList");
     const bookingCollection = client.db("tripTailorBD").collection("bookings");
+    const commentCollection = client.db("tripTailorBD").collection("comments");
 
     //jwt related api
     app.post('/jwt', async (req, res) => {
@@ -119,7 +120,7 @@ async function run() {
     })
 
     //get all the users or searched user
-    app.get('/users', async (req, res) => {
+    app.get('/users', verifyToken, async (req, res) => {
       const filter = req?.query;
       console.log(filter);
 
@@ -144,7 +145,7 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updatedDoc);
       res.send(result);
     })
-    
+
 
     // ========== tour guide related api ========= 
 
@@ -377,6 +378,13 @@ async function run() {
         }
       }
       const result = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    // add comments to the db
+    app.post('/comments', async (req, res) => {
+      const commentInfo = req.body;
+      const result = await commentCollection.insertOne(commentInfo);
       res.send(result);
     })
 
