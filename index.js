@@ -56,7 +56,6 @@ async function run() {
     })
 
     const verifyToken = (req, res, next) => {
-      // console.log('inside verify token', req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: 'unauthorized access' });
       }
@@ -125,7 +124,6 @@ async function run() {
     //get all the users or searched user
     app.get('/users', verifyToken, async (req, res) => {
       const filter = req?.query;
-      console.log(filter);
 
       const query = {
         name: { $regex: filter?.search, $options: 'i' }
@@ -436,9 +434,14 @@ async function run() {
       res.send(result);
     })
 
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    //get payment info to check paid status
+    app.get('/payments/:id', async (req, res) => {
+      const bookingId = req.params.id;
+      const query = { bookingId: bookingId }
+      const result = await paymentCollection.findOne(query);
+      res.send(result);
+    })
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
