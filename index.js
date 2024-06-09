@@ -282,6 +282,13 @@ async function run() {
       res.send(result)
     })
 
+    //get 5 star stories
+    app.get('/featuredStories', async (req, res) => {
+      const query = {rating: 5}
+      const result = await storyCollection.find(query).toArray();
+      res.send(result)
+    })
+
 
 
     // ============= booking related api ==========
