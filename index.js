@@ -71,6 +71,19 @@ async function run() {
     }
 
 
+    // ========== get length ===========
+    app.get('/total', async (req, res) => {
+      const totalUsers = await usersCollection.countDocuments();
+      const totalPackages = await packageCollection.countDocuments();
+      const totalStories = await storyCollection.countDocuments();
+      const totalComments = await commentCollection.countDocuments();
+      const totalBookings = await bookingCollection.countDocuments();
+
+      const countDocs = {totalUsers, totalPackages, totalStories, totalComments, totalBookings}
+
+      res.send(countDocs)
+    })
+
     // ============ user related api ===========
 
     //save a user in the db 
@@ -284,11 +297,10 @@ async function run() {
 
     //get 5 star stories
     app.get('/featuredStories', async (req, res) => {
-      const query = {rating: 5}
+      const query = { rating: 5 }
       const result = await storyCollection.find(query).toArray();
       res.send(result)
     })
-
 
 
     // ============= booking related api ==========
