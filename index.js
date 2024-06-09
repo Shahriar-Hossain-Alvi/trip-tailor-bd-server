@@ -1,6 +1,7 @@
 const express = require('express');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -45,6 +46,7 @@ async function run() {
     const bookingCollection = client.db("tripTailorBD").collection("bookings");
     const commentCollection = client.db("tripTailorBD").collection("comments");
     const newsletterCollection = client.db("tripTailorBD").collection("newsletters");
+    const paymentCollection = client.db("tripTailorBD").collection("payments");
 
     //jwt related api
     app.post('/jwt', async (req, res) => {
@@ -294,7 +296,7 @@ async function run() {
 
 
     //get all the bookings
-    app.get('/booking', verifyToken, async (req, res) => {
+    app.get('/booking', async (req, res) => {
       const result = await bookingCollection.find().toArray();
       res.send(result);
     })
@@ -308,6 +310,14 @@ async function run() {
       res.send(result);
     })
 
+
+    //get a single booking by id for payment
+    app.get('/singleBooking/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    })
 
     //cancel a booking
     app.delete('/booking/:id', verifyToken, async (req, res) => {
@@ -397,7 +407,32 @@ async function run() {
     //newsletter subscriber
     app.post('/newsletters', async (req, res) => {
       const email = req.body;
-      const result = await newsletterCollection.insertOne({email, status: "subscribed"}); 
+      const result = await newsletterCollection.insertOne({ email, status: "subscribed" });
+      res.send(result);
+    })
+
+
+    //payment related api
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"]
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      })
+    })
+
+
+    //add transaction info to the db
+    app.post('/payments', async (req, res) => {
+      const paymentInfo = req.body;
+      const result = await paymentCollection.insertOne(paymentInfo);
       res.send(result);
     })
 
