@@ -79,7 +79,7 @@ async function run() {
       const totalComments = await commentCollection.countDocuments();
       const totalBookings = await bookingCollection.countDocuments();
 
-      const countDocs = {totalUsers, totalPackages, totalStories, totalComments, totalBookings}
+      const countDocs = { totalUsers, totalPackages, totalStories, totalComments, totalBookings }
 
       res.send(countDocs)
     })
@@ -135,6 +135,7 @@ async function run() {
     })
 
     //get all the users or searched user
+    
     app.get('/users', verifyToken, async (req, res) => {
       const filter = req?.query;
 
