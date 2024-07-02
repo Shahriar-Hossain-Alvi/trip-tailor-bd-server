@@ -14,3 +14,5 @@ This is server side codes of Trip-Tailor-Bangladesh website. It has **MongoDB CR
 - MongoDB
 - Stripe
 - JWT
+- Cors
+- Dotenv
