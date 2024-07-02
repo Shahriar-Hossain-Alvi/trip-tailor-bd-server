@@ -16,3 +16,8 @@ This is server side codes of Trip-Tailor-Bangladesh website. It has **MongoDB CR
 - JWT
 - Cors
 - Dotenv
+
+## If you want to clone and run this project on your local device use
+```
+npm install
+```
